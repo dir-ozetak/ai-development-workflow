@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import type { GameState, Tetromino } from '@/app/types/tetris';
 import { GAME_SPEED } from '@/app/constants/tetris';
@@ -176,6 +176,12 @@ export function useTetrisGame() {
     });
   }, []);
 
+  // Use ref to maintain stable reference to moveDown function
+  const moveDownRef = useRef(moveDown);
+  useEffect(() => {
+    moveDownRef.current = moveDown;
+  }, [moveDown]);
+
   // Game loop - useEffect is necessary for timer-based game logic
   useEffect(() => {
     if (gameState.isGameOver || gameState.isPaused) {
@@ -183,13 +189,13 @@ export function useTetrisGame() {
     }
 
     const interval = setInterval(() => {
-      moveDown();
+      moveDownRef.current();
     }, GAME_SPEED);
 
     return () => {
       clearInterval(interval);
     };
-  }, [gameState.isGameOver, gameState.isPaused, moveDown]);
+  }, [gameState.isGameOver, gameState.isPaused]);
 
   // Spawn new piece when current piece is null
   useEffect(() => {
